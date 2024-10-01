@@ -1,0 +1,9 @@
+class A{
+	fun set( a){
+		self.a = a;
+	}
+}
+
+a = A();
+a.set(4)
+print a.a;
