@@ -13,11 +13,13 @@
 #include <locale>
 #include <variant>
 #include <filesystem>
+#include <any>
 
 
 #include "spdlog/spdlog.h"
 #define INFO spdlog::info
 #define DEB spdlog::debug
+#define ERR spdlog::error
 
 
 // trim from start (in place)

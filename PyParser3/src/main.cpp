@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Lexer.h"
 #include "Parser.h"
+#include "Interpreter.h"
 
 
 
@@ -14,5 +15,7 @@ int main() {
 	std::string cwd = "C:\\Mayaank\\Programming\\Master\\C++\\PyParser3\\PyParser3\\src\\";
 	Lexer lexer{ cwd + "program.txt" };
 	Parser parser{ lexer.getTokens() };
+	Interpreter interpreter{};
+	interpreter.execute(parser.getStatements());
 
 }

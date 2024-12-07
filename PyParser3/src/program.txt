@@ -1,9 +1,7 @@
-class A{
-	fun set( a){
-		self.a = a;
-	}
+fun mul (a,b ){
+	return a*b;
+	print 19;
 }
 
-a = A();
-a.set(4)
-print a.a;
+
+print mul (10, 20);

@@ -2,11 +2,17 @@
 #include "pch.h"
 #include "Lexer.h"
 #include "Expression.h"
-#include "Statements.h"
+#include "Statement.h"
 
 // Objects
-
+class Interpreter;
 struct Environment; // Forward Decl
+
+struct Object;
+
+struct ObjRef {
+	Object** obj;
+};
 
 struct Object {
 	enum class Type {
@@ -16,15 +22,27 @@ struct Object {
 		FUNC,
 		CLASS,
 		METHOD,
+		REF,
 	};
 	virtual Object::Type getType() = 0;
+	virtual Object* getAttr(std::string name) {
+		ERR("Illegal Get Attr {}", name);
+		return nullptr;
+	}
+	virtual ObjRef getAttrRef(std::string name) {
+		ERR("Illegal Get Attr Ref {}", name);
+		return { nullptr };
+	}
+	virtual Object* call(std::vector<Object*> arguments, Interpreter* interpreter) {
+		ERR("Illegal call");
+		return nullptr;
+
+	}
 };
 
 struct NilObject : public Object {
 	Type getType() override { return Type::NIL; }
 };
-
-
 
 struct FloatObject : public Object {
 	float value;
@@ -45,7 +63,10 @@ struct FuncObject : public Object {
 		: params(params), body(body)
 	{
 	}
+	Object* call(std::vector<Object*> arguments, Interpreter* interpreter)override;
+
 };
+
 
 struct ClassObject : public Object {
 	std::unordered_map<std::string, Object*> attrs;
@@ -57,7 +78,7 @@ struct ClassObject : public Object {
 		attrs[name] = funcObj;
 	}
 
-	Object* getAttr(std::string name, Object* ref) {
+	Object* getAttr(std::string name) override {
 		if (attrs.count(name) != 0) {
 			Object* obj = attrs[name];
 			//if (obj->getType() == Object::Type::FUNC) {
@@ -65,8 +86,8 @@ struct ClassObject : public Object {
 			//}
 			return attrs[name];
 		}
-		spdlog::error("Cant find attribute in class");
 		return nullptr;
+		//ERR("Illegal Get Attr {}", name);
 	}
 
 	void setAttr(std::string name, Object* obj) {
@@ -77,6 +98,10 @@ struct ClassObject : public Object {
 		return attrs.count(name) != 0;
 	}
 
+	Object* call(std::vector<Object*> arguments, Interpreter* interpreter) override ;
+
+
+
 
 };
 
@@ -85,33 +110,32 @@ struct ObjObject : public Object {
 	std::unordered_map<std::string, Object*> attrs;
 	Type getType() override { return Type::OBJ; }
 
-	ObjObject(ClassObject* clsObj)
-		:clsObj(clsObj) {}
+	ObjObject(ClassObject* _clsObj)
+		:clsObj(_clsObj) {
+	}
 
-	Object* getAttr(std::string name) {
+	Object* getAttr(std::string name) override {
 		if (attrs.count(name) != 0) {
 			return attrs[name];
 		}
-		return clsObj->getAttr(name, this);
-	}
-
-	void setAttr(std::string name, Object* obj) {
-		if (isLocalAttr(name)) {
-			attrs[name] = obj;
+		Object* clsAttr = clsObj->getAttr(name);
+		if (clsAttr->getType() == Object::Type::FUNC) {
+			FuncObject* clsFunc = (FuncObject*)clsAttr;
+			clsFunc->binding = this;
+			return clsFunc;
 		}
-		else {
-			clsObj->setAttr(name, obj);
+		return clsAttr;
+	}
+	ObjRef getAttrRef(std::string name) override {
+		if (attrs.count(name) != 0) {
+			return { &attrs[name] };
 		}
-	}
+		attrs[name] = new NilObject{};
+		return { &attrs[name] };
 
-	bool isLocalAttr(std::string name) {
-		return attrs.count(name) != 0;
-	}
-
-	bool isAttr(std::string name) {
-		return isLocalAttr(name) || clsObj->isAttr(name);
 	}
 };
+
 
 struct MethodObject : public Object {
 	FuncObject* funcObj;
@@ -124,4 +148,9 @@ struct MethodObject : public Object {
 		: funcObj(funcObj), ref(ref)
 	{
 	}
+};
+
+struct AssignEnv {
+	std::unordered_map<std::string, Object*>* enclosing;
+	std::string name;
 };

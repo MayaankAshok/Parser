@@ -95,15 +95,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\Environment.h" />
     <ClInclude Include="src\Expression.h" />
+    <ClInclude Include="src\Interpreter.h" />
     <ClInclude Include="src\Lexer.h" />
-    <ClInclude Include="src\Objects.h" />
+    <ClInclude Include="src\Object.h" />
     <ClInclude Include="src\Parser.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\Statements.h" />
+    <ClInclude Include="src\Statement.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Object.cpp" />
     <ClCompile Include="src\pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>

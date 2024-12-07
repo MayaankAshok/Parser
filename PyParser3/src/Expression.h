@@ -2,6 +2,20 @@
 #include "pch.h"
 #include "Lexer.h"
 
+template<typename... Types>
+class Visitor;
+
+template<typename T, typename R>
+class Visitor<T,R> {
+public:
+	virtual R visit(T& visitable) = 0;
+};
+
+struct Expr2;
+
+template<typename R>
+using ExprVisitor = Visitor<Expr2, R>;
+
 
 // Expressions
 
@@ -14,10 +28,14 @@ enum class ExprType {
 
 	Assign,
 	FuncCall,
+	Get,
 };
 
 struct Expr {
 	ExprType type;
+
+
+	
 
 };
 
@@ -62,11 +80,11 @@ struct UnaryExpr : public Expr {
 };
 
 struct AssignExpr : public Expr {
-	Token name;
+	Expr* left;
 	Expr* value;
-	AssignExpr(Token _name, Expr* _value) {
+	AssignExpr(Expr* _left, Expr* _value) {
 		type = ExprType::Assign;
-		name = _name;
+		left = _left;
 		value = _value;
 	}
 };
@@ -78,5 +96,15 @@ struct FuncCallExpr : public Expr {
 		type = ExprType::FuncCall;
 		name = _name;
 		args = _args;
+	}
+};
+
+struct GetExpr : public Expr {
+	Expr* left;
+	Token right;
+	GetExpr(Expr* _left, Token _right) {
+		type = ExprType::Get;
+		left = _left;
+		right = _right;
 	}
 };
